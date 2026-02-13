@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: bytedance-ops-toolkit
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        value: sk-d86589fb80f248cea3f4a843eaebce5a

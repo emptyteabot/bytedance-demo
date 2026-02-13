@@ -21,12 +21,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# OpenAI Style CSS
+# OpenAI Style CSS (升级版 - 添加动画和渐变)
 st.markdown("""
 <style>
     /* Global Styles */
     .stApp {
-        background-color: #FFFFFF;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F7F7F8 100%);
     }
 
     /* Main Container */
@@ -36,13 +36,25 @@ st.markdown("""
         max-width: 1400px;
     }
 
-    /* Headers */
+    /* Headers with Animation */
     h1, h2, h3 {
         color: #202123 !important;
         font-weight: 600 !important;
+        animation: fadeInDown 0.6s ease-out;
     }
 
-    /* Status Badge */
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Status Badge with Pulse */
     .status-badge {
         display: inline-block;
         padding: 4px 12px;
@@ -50,95 +62,160 @@ st.markdown("""
         font-size: 0.85em;
         font-weight: 500;
         margin-right: 8px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.8;
+        }
     }
 
     .status-success {
-        background-color: #D1FAE5;
+        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
         color: #065F46;
+        box-shadow: 0 2px 8px rgba(16, 163, 127, 0.2);
     }
 
-    /* Card Styles */
+    /* Card Styles with Hover Effect */
     .card {
-        background: #FFFFFF;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
         border: 1px solid #E5E7EB;
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         margin-bottom: 16px;
+        transition: all 0.3s ease;
     }
 
-    .card-header {
-        font-size: 0.875rem;
-        color: #6B7280;
-        font-weight: 500;
-        margin-bottom: 8px;
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
     }
 
-    .card-value {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #111827;
-        margin-bottom: 4px;
+    /* Metric Cards with Gradient */
+    .stMetric {
+        background: linear-gradient(135deg, #FFFFFF 0%, #F7F7F8 100%);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #E5E7EB;
+        transition: all 0.3s ease;
+        animation: fadeIn 0.8s ease-out;
     }
 
-    .card-delta {
-        font-size: 0.875rem;
-        color: #6B7280;
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
 
-    /* Primary Button Style */
+    .stMetric:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px rgba(16, 163, 127, 0.15);
+    }
+
+    /* Primary Button with Gradient */
     .stButton > button {
-        background-color: #10A37F !important;
+        background: linear-gradient(135deg, #10A37F 0%, #0D8C6C 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 6px !important;
-        padding: 8px 16px !important;
-        font-weight: 500 !important;
-        transition: all 0.2s !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(16, 163, 127, 0.3);
     }
 
     .stButton > button:hover {
-        background-color: #0D8C6C !important;
-        box-shadow: 0 2px 8px rgba(16, 163, 127, 0.3) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 163, 127, 0.4) !important;
     }
 
-    /* Metric Cards */
-    .stMetric {
-        background-color: #F7F7F8;
-        padding: 16px;
-        border-radius: 8px;
-        border: 1px solid #E5E7EB;
-    }
-
-    /* Tab Styles */
+    /* Tab Styles with Animation */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: #F7F7F8;
-        padding: 4px;
-        border-radius: 8px;
+        padding: 6px;
+        border-radius: 12px;
     }
 
     .stTabs [data-baseweb="tab"] {
-        border-radius: 6px;
-        padding: 8px 16px;
+        border-radius: 8px;
+        padding: 10px 20px;
         font-weight: 500;
         color: #6B7280;
+        transition: all 0.3s ease;
     }
 
     .stTabs [aria-selected="true"] {
-        background-color: #FFFFFF;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
         color: #10A37F;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    /* Input Styles */
-    .stTextArea textarea {
-        border-radius: 8px;
-        border: 1px solid #E5E7EB;
+    /* Loading Animation */
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
     }
 
-    .stSelectbox > div > div {
+    .loading {
+        animation: shimmer 2s infinite;
+        background: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+        background-size: 1000px 100%;
+    }
+
+    /* Success Alert */
+    .success-alert {
+        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+        border-left: 4px solid #10A37F;
+        padding: 16px;
         border-radius: 8px;
-        border: 1px solid #E5E7EB;
+        margin: 16px 0;
+        animation: slideInRight 0.5s ease-out;
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Critical Alert */
+    .critical-alert {
+        background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+        border-left: 4px solid #EF4444;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 16px 0;
+        animation: shake 0.5s ease-out;
+    }
+
+    @keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        25% {
+            transform: translateX(-10px);
+        }
+        75% {
+            transform: translateX(10px);
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -241,21 +318,57 @@ with col1:
     st.caption("Spring Festival Risk Control Dashboard | 实时监控 100+ 店铺")
 
 with col2:
-    st.markdown("### 系统状态")
+    st.markdown("### 🔗 系统状态")
     st.markdown("""
-    <div>
-        <span class="status-badge status-success">✅ 已连接 ClickHouse</span><br>
-        <span class="status-badge status-success">✅ 已连接 Redis</span><br>
-        <span class="status-badge status-success">✅ 已连接 DeepSeek API</span>
+    <div style='animation: fadeIn 0.8s ease-out;'>
+        <span class="status-badge status-success">✅ ClickHouse 已连接</span><br>
+        <span class="status-badge status-success">✅ Redis 已连接</span><br>
+        <span class="status-badge status-success">✅ DeepSeek AI 已连接</span>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f"### 最后更新")
-    st.markdown(f"**{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}**")
-    st.caption("数据刷新间隔: 60秒")
+    st.markdown("### ⏰ 实时监控")
+    st.markdown(f"""
+    <div style='animation: fadeIn 1s ease-out;'>
+        <p style='font-size: 1.2em; font-weight: 600; color: #10A37F; margin: 0;'>{datetime.now().strftime('%H:%M:%S')}</p>
+        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>数据刷新: 每 5 分钟</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("---")
+
+# 添加震撼的统计横幅
+st.markdown(f"""
+<div style='background: linear-gradient(135deg, #10A37F 0%, #0D8C6C 100%);
+            padding: 24px;
+            border-radius: 16px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(16, 163, 127, 0.3);
+            animation: fadeIn 1s ease-out;
+            margin-bottom: 24px;'>
+    <h2 style='color: white !important; margin: 0 0 12px 0;'>🎯 春节风控核心指标</h2>
+    <div style='display: flex; justify-content: space-around; flex-wrap: wrap;'>
+        <div style='margin: 8px;'>
+            <p style='font-size: 2.5em; font-weight: 700; margin: 0;'>{critical_shops}</p>
+            <p style='font-size: 0.9em; opacity: 0.9; margin: 4px 0 0 0;'>P0 Critical 店铺</p>
+        </div>
+        <div style='margin: 8px;'>
+            <p style='font-size: 2.5em; font-weight: 700; margin: 0;'>${budget_saved:,}</p>
+            <p style='font-size: 0.9em; opacity: 0.9; margin: 4px 0 0 0;'>已拦截亏损预算</p>
+        </div>
+        <div style='margin: 8px;'>
+            <p style='font-size: 2.5em; font-weight: 700; margin: 0;'>{avg_sps:.2f}</p>
+            <p style='font-size: 0.9em; opacity: 0.9; margin: 4px 0 0 0;'>全局平均 SPS</p>
+        </div>
+        <div style='margin: 8px;'>
+            <p style='font-size: 2.5em; font-weight: 700; margin: 0;'>24/7</p>
+            <p style='font-size: 0.9em; opacity: 0.9; margin: 4px 0 0 0;'>实时监控在线</p>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ==================== Generate Data ====================
 
