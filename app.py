@@ -332,16 +332,17 @@ with col3:
     from datetime import timedelta
     beijing_time = datetime.now() + timedelta(hours=8)
 
-    # 2026年春节除夕是1月28日,正月初一是1月29日
-    # 现在是2月13日,春节后第15天
-    spring_festival_chuxi = datetime(2026, 1, 28, 0, 0, 0)  # 除夕
-    days_after_chuxi = (datetime.now() - spring_festival_chuxi).days
+    # 2026年春节除夕是2月17日,正月初一是2月18日
+    spring_festival_chuxi = datetime(2026, 2, 17, 0, 0, 0)  # 除夕
+    time_until_chuxi = spring_festival_chuxi - datetime.now()
+    days_left = time_until_chuxi.days
+    hours_left = time_until_chuxi.seconds // 3600
 
     st.markdown("### ⏰ 实时监控")
     st.markdown(f"""
     <div style='animation: fadeIn 1s ease-out;'>
         <p style='font-size: 1.2em; font-weight: 600; color: #10A37F; margin: 0;'>{beijing_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>北京时间 | 春节后第 {days_after_chuxi} 天 | 值班中</p>
+        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>北京时间 | 距除夕: {days_left}天{hours_left}时 | 待命中</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -584,23 +585,30 @@ with tab3:
 
     st.info("💡 输入差评内容,AI 自动判定类别并生成申诉策略 (支持中英文)")
 
+    # 初始化 session state
+    if 'review_text' not in st.session_state:
+        st.session_state.review_text = ""
+
+    # 示例按钮
+    col_btn1, col_btn2, col_btn3 = st.columns(3)
+    with col_btn1:
+        if st.button("📝 示例 1: 物流延迟", use_container_width=True):
+            st.session_state.review_text = "Shipping took forever! Still waiting after 3 weeks..."
+    with col_btn2:
+        if st.button("📝 示例 2: 春节物流", use_container_width=True):
+            st.session_state.review_text = "物流太慢了,春节期间等了一个月才收到,包装还破损了"
+    with col_btn3:
+        if st.button("📝 示例 3: 质量问题", use_container_width=True):
+            st.session_state.review_text = "Product is fake! Terrible quality, broken on arrival!"
+
     review_input = st.text_area(
         "输入差评内容",
+        value=st.session_state.review_text,
         placeholder='例如: "Shipping took forever! Still waiting after 3 weeks..." 或 "物流太慢了,春节期间等了一个月"',
         height=100
     )
 
-    col1, col2, col3 = st.columns([1, 1, 3])
-    with col1:
-        analyze_btn = st.button("🚀 AI 分析", type="primary", use_container_width=True)
-    with col2:
-        if st.button("📝 示例 1", use_container_width=True):
-            review_input = "Shipping took forever! Still waiting after 3 weeks..."
-            st.rerun()
-    with col3:
-        if st.button("📝 示例 2: 春节物流延迟", use_container_width=True):
-            review_input = "物流太慢了,春节期间等了一个月才收到,包装还破损了"
-            st.rerun()
+    analyze_btn = st.button("🚀 AI 分析", type="primary", use_container_width=True)
 
     if analyze_btn and review_input:
         with st.spinner("AI 正在分析..."):
