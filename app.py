@@ -363,7 +363,7 @@ avg_sps = shop_df['sps_score'].mean()
 avg_delay_rate = shop_df['shipping_delay_rate'].mean()
 circuit_breaker_count = roas_df['is_circuit_breaker'].sum()
 budget_saved = circuit_breaker_count * 1240
-total_orders = shop_df['order_count'].sum()
+total_orders = shop_df['daily_orders'].sum()
 smart_promo_eligible = shop_df[shop_df['sps_score'] >= 3.6].shape[0]
 
 # 添加震撼的统计横幅
