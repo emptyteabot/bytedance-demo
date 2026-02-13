@@ -338,6 +338,22 @@ with col3:
 
 st.markdown("---")
 
+# ==================== Generate Data ====================
+
+shop_df = generate_shop_data(100)  # 100家店铺
+roas_df = generate_roas_timeseries(24)  # 24小时数据
+
+# ==================== Key Metrics ====================
+
+col1, col2, col3, col4, col5 = st.columns(5)
+
+critical_shops = shop_df[shop_df['is_critical']].shape[0]
+warning_shops = shop_df[shop_df['is_warning']].shape[0]
+avg_sps = shop_df['sps_score'].mean()
+avg_delay_rate = shop_df['shipping_delay_rate'].mean()
+circuit_breaker_count = roas_df['is_circuit_breaker'].sum()
+budget_saved = circuit_breaker_count * 1240
+
 # 添加震撼的统计横幅
 st.markdown(f"""
 <div style='background: linear-gradient(135deg, #10A37F 0%, #0D8C6C 100%);
@@ -369,22 +385,6 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-# ==================== Generate Data ====================
-
-shop_df = generate_shop_data(100)  # 100家店铺
-roas_df = generate_roas_timeseries(24)  # 24小时数据
-
-# ==================== Key Metrics ====================
-
-col1, col2, col3, col4, col5 = st.columns(5)
-
-critical_shops = shop_df[shop_df['is_critical']].shape[0]
-warning_shops = shop_df[shop_df['is_warning']].shape[0]
-avg_sps = shop_df['sps_score'].mean()
-avg_delay_rate = shop_df['shipping_delay_rate'].mean()
-circuit_breaker_count = roas_df['is_circuit_breaker'].sum()
-budget_saved = circuit_breaker_count * 1240
 
 with col1:
     st.metric(
