@@ -332,15 +332,16 @@ with col3:
     from datetime import timedelta
     beijing_time = datetime.now() + timedelta(hours=8)
 
-    # 2026年春节已过,显示春节后天数
-    spring_festival_2026 = datetime(2026, 1, 29, 0, 0, 0)
-    days_after_sf = (datetime.now() - spring_festival_2026).days
+    # 2026年春节除夕是1月28日,正月初一是1月29日
+    # 现在是2月13日,春节后第15天
+    spring_festival_chuxi = datetime(2026, 1, 28, 0, 0, 0)  # 除夕
+    days_after_chuxi = (datetime.now() - spring_festival_chuxi).days
 
     st.markdown("### ⏰ 实时监控")
     st.markdown(f"""
     <div style='animation: fadeIn 1s ease-out;'>
         <p style='font-size: 1.2em; font-weight: 600; color: #10A37F; margin: 0;'>{beijing_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>北京时间 | 春节后第{days_after_sf}天</p>
+        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>北京时间 | 春节后第 {days_after_chuxi} 天 | 值班中</p>
     </div>
     """, unsafe_allow_html=True)
 
