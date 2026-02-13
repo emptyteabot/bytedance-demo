@@ -332,17 +332,15 @@ with col3:
     from datetime import timedelta
     beijing_time = datetime.now() + timedelta(hours=8)
 
-    # 春节倒计时 (2027年2月6日 00:00:00 - 蛇年春节除夕)
-    spring_festival = datetime(2027, 2, 6, 0, 0, 0)
-    time_until_sf = spring_festival - datetime.now()
-    days_left = time_until_sf.days
-    hours_left = time_until_sf.seconds // 3600
+    # 2026年春节已过,显示春节后天数
+    spring_festival_2026 = datetime(2026, 1, 29, 0, 0, 0)
+    days_after_sf = (datetime.now() - spring_festival_2026).days
 
     st.markdown("### ⏰ 实时监控")
     st.markdown(f"""
     <div style='animation: fadeIn 1s ease-out;'>
         <p style='font-size: 1.2em; font-weight: 600; color: #10A37F; margin: 0;'>{beijing_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>北京时间 | 距2027春节: {days_left}天{hours_left}时</p>
+        <p style='color: #6B7280; font-size: 0.9em; margin: 5px 0 0 0;'>北京时间 | 春节后第{days_after_sf}天</p>
     </div>
     """, unsafe_allow_html=True)
 
