@@ -199,7 +199,71 @@ def generate_roas_timeseries(hours=72):
 
     return df
 
-def analyze_review(review_text):
+def analyze_review_with_deepseek(review_text):
+    """使用 DeepSeek API 分析差评"""
+    try:
+        import requests
+
+        # 获取 API Key (从 Streamlit secrets 或环境变量)
+        api_key = st.secrets.get("DEEPSEEK_API_KEY", "sk-d86589fb80f248cea3f4a843eaebce5a")
+
+        # 调用 DeepSeek API
+        response = requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": """你是 TikTok Shop 的差评分析专家。
+任务: 判断差评是 "物流问题" (可申诉) 还是 "质量问题" (不可申诉)。
+输出 JSON 格式: {"category": "物流问题/质量问题/服务问题", "is_appealable": true/false, "confidence": 0.95, "reason": "判断理由"}"""
+                    },
+                    {
+                        "role": "user",
+                        "content": f"分析这条差评: {review_text}"
+                    }
+                ],
+                "temperature": 0.3,
+                "max_tokens": 200
+            },
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            ai_response = result['choices'][0]['message']['content']
+
+            # 解析 AI 返回的 JSON
+            import json
+            try:
+                parsed = json.loads(ai_response)
+                category_map = {
+                    "物流问题": "📦 物流问题 (可申诉)",
+                    "质量问题": "🚨 质量问题 (不可申诉)",
+                    "服务问题": "💬 服务问题 (可申诉)"
+                }
+
+                return {
+                    'category': category_map.get(parsed['category'], "💬 服务问题 (可申诉)"),
+                    'is_appealable': parsed['is_appealable'],
+                    'confidence': parsed['confidence'],
+                    'action': '自动生成申诉工单' if parsed['is_appealable'] else '触发产品下架审查',
+                    'ai_reason': parsed.get('reason', ''),
+                    'powered_by': 'DeepSeek API'
+                }
+            except:
+                # 如果 JSON 解析失败,使用关键词匹配
+                pass
+
+    except Exception as e:
+        st.warning(f"DeepSeek API 调用失败,使用本地规则引擎: {str(e)}")
+
+    # Fallback: 使用关键词匹配
     logistics_keywords = ['shipping', 'delivery', 'late', 'slow', 'delayed', '物流', '发货', '慢', '延迟']
     quality_keywords = ['fake', 'broken', 'trash', 'quality', 'defective', '假货', '质量', '破损']
 
@@ -210,21 +274,24 @@ def analyze_review(review_text):
             'category': '📦 物流问题 (可申诉)',
             'is_appealable': True,
             'confidence': round(np.random.uniform(0.87, 0.98), 2),
-            'action': '自动生成申诉工单'
+            'action': '自动生成申诉工单',
+            'powered_by': '本地规则引擎'
         }
     elif any(kw in review_lower for kw in quality_keywords):
         return {
             'category': '🚨 质量问题 (不可申诉)',
             'is_appealable': False,
             'confidence': round(np.random.uniform(0.87, 0.98), 2),
-            'action': '触发产品下架审查'
+            'action': '触发产品下架审查',
+            'powered_by': '本地规则引擎'
         }
     else:
         return {
             'category': '💬 服务问题 (可申诉)',
             'is_appealable': True,
             'confidence': round(np.random.uniform(0.75, 0.90), 2),
-            'action': '标准申诉流程'
+            'action': '标准申诉流程',
+            'powered_by': '本地规则引擎'
         }
 
 # ==================== Header ====================
@@ -457,9 +524,9 @@ with tab3:
         analyze_btn = st.button("🚀 AI 分析", type="primary", use_container_width=True)
 
     if analyze_btn and review_input:
-        with st.spinner("AI 正在分析..."):
+        with st.spinner("DeepSeek AI 正在分析..."):
             time.sleep(1)
-            result = analyze_review(review_input)
+            result = analyze_review_with_deepseek(review_input)
 
         col_result1, col_result2 = st.columns(2)
 
@@ -487,17 +554,21 @@ with tab3:
 
         with col_result2:
             st.markdown("### 处理方案")
+            st.caption(f"🤖 Powered by: {result.get('powered_by', 'DeepSeek API')}")
+
             if result['is_appealable']:
                 st.json({
                     "appeal_type": "Force Majeure - CNY Logistics",
                     "success_rate": "82%",
-                    "action": "自动生成申诉工单"
+                    "action": "自动生成申诉工单",
+                    "ai_reason": result.get('ai_reason', '春节物流延迟属于不可抗力')
                 })
             else:
                 st.json({
                     "alert_level": "P0 - CRITICAL",
                     "action": "触发产品下架审查",
-                    "escalation": "通知供应链+法务+运营"
+                    "escalation": "通知供应链+法务+运营",
+                    "ai_reason": result.get('ai_reason', '产品质量问题需立即处理')
                 })
 
 with tab4:
