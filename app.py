@@ -332,8 +332,8 @@ with col3:
     from datetime import timedelta
     beijing_time = datetime.now() + timedelta(hours=8)
 
-    # 春节倒计时 (2027年1月17日 00:00:00 - 蛇年春节)
-    spring_festival = datetime(2027, 1, 17, 0, 0, 0)
+    # 春节倒计时 (2027年2月6日 00:00:00 - 蛇年春节除夕)
+    spring_festival = datetime(2027, 2, 6, 0, 0, 0)
     time_until_sf = spring_festival - datetime.now()
     days_left = time_until_sf.days
     hours_left = time_until_sf.seconds // 3600
