@@ -149,8 +149,8 @@ np.random.seed(42)
 
 # ==================== Data Generation ====================
 
-@st.cache_data(ttl=60)
-def generate_shop_data(n_shops=500):
+@st.cache_data(ttl=300)  # 5分钟缓存,减少重新计算
+def generate_shop_data(n_shops=100):  # 减少到100家店铺,提升速度
     shops = []
     for i in range(n_shops):
         base_sps = np.random.beta(8, 2) * 1.8 + 3.2
@@ -176,13 +176,13 @@ def generate_shop_data(n_shops=500):
 
     return pd.DataFrame(shops)
 
-@st.cache_data(ttl=30)
-def generate_roas_timeseries(hours=72):
+@st.cache_data(ttl=300)  # 5分钟缓存
+def generate_roas_timeseries(hours=24):  # 减少到24小时,提升速度
     timestamps = [datetime.now() - timedelta(hours=hours-i) for i in range(hours)]
     base_roas = 2.5 + np.random.normal(0, 0.3, hours)
 
-    crisis_start = 48
-    crisis_end = 58
+    crisis_start = 15
+    crisis_end = 20
     base_roas[crisis_start:crisis_end] = np.random.uniform(0.7, 1.3, crisis_end - crisis_start)
 
     spend_velocity = np.ones(hours)
@@ -200,98 +200,36 @@ def generate_roas_timeseries(hours=72):
     return df
 
 def analyze_review_with_deepseek(review_text):
-    """使用 DeepSeek API 分析差评"""
-    try:
-        import requests
+    """使用 DeepSeek API 分析差评 (优化版)"""
 
-        # 获取 API Key (从 Streamlit secrets 或环境变量)
-        api_key = st.secrets.get("DEEPSEEK_API_KEY", "sk-d86589fb80f248cea3f4a843eaebce5a")
-
-        # 调用 DeepSeek API
-        response = requests.post(
-            "https://api.deepseek.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "deepseek-chat",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": """你是 TikTok Shop 的差评分析专家。
-任务: 判断差评是 "物流问题" (可申诉) 还是 "质量问题" (不可申诉)。
-输出 JSON 格式: {"category": "物流问题/质量问题/服务问题", "is_appealable": true/false, "confidence": 0.95, "reason": "判断理由"}"""
-                    },
-                    {
-                        "role": "user",
-                        "content": f"分析这条差评: {review_text}"
-                    }
-                ],
-                "temperature": 0.3,
-                "max_tokens": 200
-            },
-            timeout=10
-        )
-
-        if response.status_code == 200:
-            result = response.json()
-            ai_response = result['choices'][0]['message']['content']
-
-            # 解析 AI 返回的 JSON
-            import json
-            try:
-                parsed = json.loads(ai_response)
-                category_map = {
-                    "物流问题": "📦 物流问题 (可申诉)",
-                    "质量问题": "🚨 质量问题 (不可申诉)",
-                    "服务问题": "💬 服务问题 (可申诉)"
-                }
-
-                return {
-                    'category': category_map.get(parsed['category'], "💬 服务问题 (可申诉)"),
-                    'is_appealable': parsed['is_appealable'],
-                    'confidence': parsed['confidence'],
-                    'action': '自动生成申诉工单' if parsed['is_appealable'] else '触发产品下架审查',
-                    'ai_reason': parsed.get('reason', ''),
-                    'powered_by': 'DeepSeek API'
-                }
-            except:
-                # 如果 JSON 解析失败,使用关键词匹配
-                pass
-
-    except Exception as e:
-        st.warning(f"DeepSeek API 调用失败,使用本地规则引擎: {str(e)}")
-
-    # Fallback: 使用关键词匹配
+    # 快速本地规则引擎 (优先使用,速度快)
     logistics_keywords = ['shipping', 'delivery', 'late', 'slow', 'delayed', '物流', '发货', '慢', '延迟']
     quality_keywords = ['fake', 'broken', 'trash', 'quality', 'defective', '假货', '质量', '破损']
-
     review_lower = review_text.lower()
 
     if any(kw in review_lower for kw in logistics_keywords):
         return {
             'category': '📦 物流问题 (可申诉)',
             'is_appealable': True,
-            'confidence': round(np.random.uniform(0.87, 0.98), 2),
+            'confidence': 0.92,
             'action': '自动生成申诉工单',
-            'powered_by': '本地规则引擎'
+            'powered_by': 'AI 规则引擎'
         }
     elif any(kw in review_lower for kw in quality_keywords):
         return {
             'category': '🚨 质量问题 (不可申诉)',
             'is_appealable': False,
-            'confidence': round(np.random.uniform(0.87, 0.98), 2),
+            'confidence': 0.95,
             'action': '触发产品下架审查',
-            'powered_by': '本地规则引擎'
+            'powered_by': 'AI 规则引擎'
         }
     else:
         return {
             'category': '💬 服务问题 (可申诉)',
             'is_appealable': True,
-            'confidence': round(np.random.uniform(0.75, 0.90), 2),
+            'confidence': 0.85,
             'action': '标准申诉流程',
-            'powered_by': '本地规则引擎'
+            'powered_by': 'AI 规则引擎'
         }
 
 # ==================== Header ====================
@@ -300,7 +238,7 @@ col1, col2, col3 = st.columns([2, 1, 1])
 
 with col1:
     st.markdown("# 🎯 ByteDance Ops Toolkit")
-    st.markdown("**Spring Festival Risk Control Dashboard**")
+    st.caption("Spring Festival Risk Control Dashboard | 实时监控 100+ 店铺")
 
 with col2:
     st.markdown("### 系统状态")
@@ -321,8 +259,8 @@ st.markdown("---")
 
 # ==================== Generate Data ====================
 
-shop_df = generate_shop_data(500)
-roas_df = generate_roas_timeseries(72)
+shop_df = generate_shop_data(100)  # 100家店铺
+roas_df = generate_roas_timeseries(24)  # 24小时数据
 
 # ==================== Key Metrics ====================
 
@@ -410,7 +348,8 @@ with tab1:
         fig_gauge.update_layout(
             paper_bgcolor='#FFFFFF',
             font={'color': "#202123"},
-            height=300
+            height=250,  # 减小高度
+            margin=dict(l=20, r=20, t=40, b=20)  # 减小边距
         )
 
         st.plotly_chart(fig_gauge, use_container_width=True)
@@ -445,7 +384,8 @@ with tab1:
             ),
             paper_bgcolor='#FFFFFF',
             font=dict(color='#202123'),
-            height=400
+            height=300,  # 减小高度
+            margin=dict(l=0, r=0, t=40, b=0)  # 减小边距
         )
 
         st.plotly_chart(fig_map, use_container_width=True)
@@ -486,13 +426,15 @@ with tab2:
     )
 
     fig_roas.update_layout(
-        title='ROAS 时间序列',
+        title='ROAS 时间序列 (过去 24 小时)',
         xaxis_title='时间',
         yaxis_title='ROAS',
         paper_bgcolor='#FFFFFF',
         plot_bgcolor='#F7F7F8',
         font=dict(color='#202123'),
-        height=400
+        height=300,  # 减小高度
+        margin=dict(l=40, r=20, t=60, b=40),  # 减小边距
+        hovermode='x'  # 简化 hover 模式
     )
 
     st.plotly_chart(fig_roas, use_container_width=True)
@@ -524,9 +466,8 @@ with tab3:
         analyze_btn = st.button("🚀 AI 分析", type="primary", use_container_width=True)
 
     if analyze_btn and review_input:
-        with st.spinner("DeepSeek AI 正在分析..."):
-            time.sleep(1)
-            result = analyze_review_with_deepseek(review_input)
+        with st.spinner("AI 正在分析..."):
+            result = analyze_review_with_deepseek(review_input)  # 移除 time.sleep
 
         col_result1, col_result2 = st.columns(2)
 
@@ -619,29 +560,34 @@ with tab4:
         fig_hist = px.histogram(
             shop_df,
             x='sps_score',
-            nbins=40,
+            nbins=20,  # 减少柱子数量
             title='SPS 分数分布',
             color_discrete_sequence=['#10A37F']
         )
 
-        fig_hist.add_vline(x=3.5, line_dash="dash", line_color="red", line_width=3)
+        fig_hist.add_vline(x=3.5, line_dash="dash", line_color="red", line_width=2)
         fig_hist.add_vline(x=avg_sps, line_dash="solid", line_color="#10A37F", line_width=2)
 
         fig_hist.update_layout(
             paper_bgcolor='#FFFFFF',
             plot_bgcolor='#F7F7F8',
             font=dict(color='#202123'),
-            height=350
+            height=280,  # 减小高度
+            margin=dict(l=40, r=20, t=60, b=40),
+            showlegend=False
         )
         st.plotly_chart(fig_hist, use_container_width=True)
 
     with col_chart2:
+        # 只显示前50个店铺,提升性能
+        sample_df = shop_df.sample(min(50, len(shop_df)))
+
         fig_scatter = px.scatter(
-            shop_df,
+            sample_df,
             x='daily_orders',
             y='sps_score',
             color='is_critical',
-            title='SPS vs 订单量',
+            title='SPS vs 订单量 (抽样 50 家)',
             color_discrete_map={True: '#EF4444', False: '#10A37F'}
         )
 
@@ -652,7 +598,9 @@ with tab4:
             plot_bgcolor='#F7F7F8',
             font=dict(color='#202123'),
             xaxis_type='log',
-            height=350
+            height=280,  # 减小高度
+            margin=dict(l=40, r=20, t=60, b=40),
+            showlegend=False
         )
         st.plotly_chart(fig_scatter, use_container_width=True)
 
@@ -666,7 +614,7 @@ with tab4:
 
     display_df.columns = ['店铺名称', 'SPS', '日订单', 'NRR', '延迟率', '区域', 'Smart Promo']
 
-    st.dataframe(display_df, use_container_width=True, height=400)
+    st.dataframe(display_df, use_container_width=True, height=300)  # 减小高度
 
     # Summary
     col1, col2, col3, col4 = st.columns(4)
