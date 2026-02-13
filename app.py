@@ -402,9 +402,6 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 with col1:
     st.metric(
