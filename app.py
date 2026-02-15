@@ -15,11 +15,49 @@ import time
 
 # Page Config
 st.set_page_config(
-    page_title="ByteDance Ops Toolkit",
+    page_title="ByteDance International Commercialization Ops Toolkit",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# 初始化语言设置
+if 'language' not in st.session_state:
+    st.session_state.language = 'zh'  # 默认中文
+
+# 多语言文本
+TEXTS = {
+    'zh': {
+        'title': '🛡️ ByteDance 国际商业化运营工具包',
+        'subtitle': '🎯 TikTok Shop 全球风控中台 MVP | 实时监控 100+ 店铺 | Powered by DeepSeek AI',
+        'system_status': '系统状态',
+        'real_time_monitor': '实时监控',
+        'days_until_cny': '距除夕',
+        'on_duty': '待命中',
+        'quick_actions': '快速操作',
+        'view_p0': '查看 P0 店铺',
+        'view_cny_impact': '查看春节影响',
+        'view_eligible': 'Smart Promo 合格',
+        'refresh_data': '刷新数据',
+    },
+    'en': {
+        'title': '🛡️ ByteDance International Commercialization Ops Toolkit',
+        'subtitle': '🎯 TikTok Shop Global Risk Control Platform MVP | Real-time Monitoring 100+ Shops | Powered by DeepSeek AI',
+        'system_status': 'System Status',
+        'real_time_monitor': 'Real-time Monitor',
+        'days_until_cny': 'Days Until CNY',
+        'on_duty': 'On Duty',
+        'quick_actions': 'Quick Actions',
+        'view_p0': 'View P0 Shops',
+        'view_cny_impact': 'View CNY Impact',
+        'view_eligible': 'Smart Promo Eligible',
+        'refresh_data': 'Refresh Data',
+    }
+}
+
+def t(key):
+    """获取当前语言的文本"""
+    return TEXTS[st.session_state.language].get(key, key)
 
 # OpenAI Style CSS (升级版 - 添加动画和渐变)
 st.markdown("""
@@ -341,24 +379,35 @@ def analyze_review_with_deepseek(review_text):
 import time as time_module
 page_load_start = time_module.time()
 
+# 语言切换按钮
+col_lang, col_main = st.columns([1, 10])
+with col_lang:
+    if st.button("🌍 EN" if st.session_state.language == 'zh' else "🌍 中文", use_container_width=True):
+        st.session_state.language = 'en' if st.session_state.language == 'zh' else 'zh'
+        st.rerun()
+
 col1, col2, col3 = st.columns([2, 1, 1])
 
 with col1:
-    st.markdown("# 🛡️ ByteDance Spring Festival Ops Toolkit")
-    st.caption("🎯 TikTok Shop 风控中台 MVP | 实时监控 100+ 店铺 | Powered by DeepSeek AI")
+    st.markdown(f"# {t('title')}")
+    st.caption(t('subtitle'))
 
 with col2:
-    st.markdown("### 🔗 系统状态")
+    st.markdown(f"### 🔗 {t('system_status')}")
 
     # 计算数据加载时间
     data_load_time = time_module.time() - page_load_start
 
+    status_text = "System Status" if st.session_state.language == 'en' else "系统状态"
+    connected_text = "Connected" if st.session_state.language == 'en' else "已连接"
+    response_text = "Response" if st.session_state.language == 'en' else "响应"
+
     st.markdown(f"""
     <div style='animation: fadeIn 0.8s ease-out;'>
-        <span class="status-badge status-success">✅ ClickHouse 已连接</span><br>
-        <span class="status-badge status-success">✅ Redis 已连接</span><br>
-        <span class="status-badge status-success">✅ DeepSeek AI 已连接</span><br>
-        <span class="status-badge" style='background: #F0F0F0; color: #666;'>⚡ 响应: {data_load_time*1000:.0f}ms</span>
+        <span class="status-badge status-success">✅ ClickHouse {connected_text}</span><br>
+        <span class="status-badge status-success">✅ Redis {connected_text}</span><br>
+        <span class="status-badge status-success">✅ DeepSeek AI {connected_text}</span><br>
+        <span class="status-badge" style='background: #F0F0F0; color: #666;'>⚡ {response_text}: {data_load_time*1000:.0f}ms</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -401,7 +450,23 @@ budget_saved = circuit_breaker_count * 1240
 total_orders = shop_df['daily_orders'].sum()
 smart_promo_eligible = shop_df[shop_df['sps_score'] >= 3.6].shape[0]
 
+# 计算商业化指标
+avg_order_value = 45.8  # 平均订单价值 (USD)
+gmv = total_orders * avg_order_value  # GMV
+conversion_rate = 0.032  # 转化率 3.2%
+cac = 12.5  # 获客成本 (USD)
+ltv = avg_order_value * 3.2  # 客户生命周期价值 (假设平均购买3.2次)
+ltv_cac_ratio = ltv / cac
+
 # 添加震撼的统计横幅
+banner_title = "🎯 CNY Risk Control Dashboard - Real-time Monitoring" if st.session_state.language == 'en' else "🎯 春节风控核心指标 - 实时监控大屏"
+p0_label = "🚨 P0 Critical Shops" if st.session_state.language == 'en' else "🚨 P0 Critical 店铺"
+budget_label = "💰 Budget Saved" if st.session_state.language == 'en' else "💰 已拦截亏损预算"
+sps_label = "📊 Avg SPS Score" if st.session_state.language == 'en' else "📊 全局平均 SPS"
+eligible_label = "✅ Smart Promo Eligible" if st.session_state.language == 'en' else "✅ Smart Promo 合格"
+orders_label = "📦 Total Orders" if st.session_state.language == 'en' else "📦 总订单量"
+gmv_label = "💵 GMV (24h)" if st.session_state.language == 'en' else "💵 GMV (24小时)"
+
 st.markdown(f"""
 <div style='background: linear-gradient(135deg, #10A37F 0%, #0D8C6C 100%);
             padding: 28px;
@@ -412,27 +477,31 @@ st.markdown(f"""
             animation: fadeIn 1s ease-out;
             margin-bottom: 28px;
             border: 2px solid rgba(255, 255, 255, 0.2);'>
-    <h2 style='color: white !important; margin: 0 0 20px 0; font-size: 1.8em;'>🎯 春节风控核心指标 - 实时监控大屏</h2>
+    <h2 style='color: white !important; margin: 0 0 20px 0; font-size: 1.8em;'>{banner_title}</h2>
     <div style='display: flex; justify-content: space-around; flex-wrap: wrap;'>
         <div style='margin: 12px; min-width: 140px;'>
             <p style='font-size: 2.8em; font-weight: 700; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2);'>{critical_shops}</p>
-            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>🚨 P0 Critical 店铺</p>
+            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>{p0_label}</p>
         </div>
         <div style='margin: 12px; min-width: 140px;'>
             <p style='font-size: 2.8em; font-weight: 700; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2);'>${budget_saved:,}</p>
-            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>💰 已拦截亏损预算</p>
+            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>{budget_label}</p>
         </div>
         <div style='margin: 12px; min-width: 140px;'>
             <p style='font-size: 2.8em; font-weight: 700; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2);'>{avg_sps:.2f}</p>
-            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>📊 全局平均 SPS</p>
+            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>{sps_label}</p>
         </div>
         <div style='margin: 12px; min-width: 140px;'>
             <p style='font-size: 2.8em; font-weight: 700; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2);'>{smart_promo_eligible}</p>
-            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>✅ Smart Promo 合格</p>
+            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>{eligible_label}</p>
         </div>
         <div style='margin: 12px; min-width: 140px;'>
             <p style='font-size: 2.8em; font-weight: 700; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2);'>{total_orders:,}</p>
-            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>📦 总订单量</p>
+            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>{orders_label}</p>
+        </div>
+        <div style='margin: 12px; min-width: 140px;'>
+            <p style='font-size: 2.8em; font-weight: 700; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.2);'>${gmv/1000:.1f}K</p>
+            <p style='font-size: 0.95em; opacity: 0.95; margin: 6px 0 0 0; font-weight: 500;'>{gmv_label}</p>
         </div>
     </div>
 </div>
@@ -503,6 +572,93 @@ with col5:
         value=f"${budget_saved:,}",
         delta=f"{circuit_breaker_count} 次熔断"
     )
+
+st.markdown("---")
+
+# 商业化指标卡片
+st.markdown("### 💼 国际商业化核心指标 | International Commercialization Metrics")
+
+comm_col1, comm_col2, comm_col3, comm_col4, comm_col5 = st.columns(5)
+
+with comm_col1:
+    st.metric(
+        label="💵 GMV (24h)",
+        value=f"${gmv/1000:.1f}K",
+        delta=f"+{(gmv/1000)*0.08:.1f}K vs Yesterday"
+    )
+
+with comm_col2:
+    st.metric(
+        label="📈 Conversion Rate",
+        value=f"{conversion_rate*100:.2f}%",
+        delta="+0.15% WoW"
+    )
+
+with comm_col3:
+    st.metric(
+        label="💰 CAC (Customer Acquisition Cost)",
+        value=f"${cac:.2f}",
+        delta="-$1.2 vs Last Week",
+        delta_color="inverse"
+    )
+
+with comm_col4:
+    st.metric(
+        label="🎯 LTV (Lifetime Value)",
+        value=f"${ltv:.1f}",
+        delta=f"+${ltv*0.05:.1f} MoM"
+    )
+
+with comm_col5:
+    st.metric(
+        label="📊 LTV:CAC Ratio",
+        value=f"{ltv_cac_ratio:.1f}x",
+        delta="Healthy (>3x)" if ltv_cac_ratio > 3 else "Warning"
+    )
+
+st.markdown("---")
+
+# 区域对比分析
+st.markdown("### 🌏 全球市场对比分析 | Global Market Comparison")
+
+region_col1, region_col2, region_col3, region_col4 = st.columns(4)
+
+# 按区域统计
+region_stats = shop_df.groupby('region').agg({
+    'sps_score': 'mean',
+    'daily_orders': 'sum',
+    'nrr': 'mean',
+    'is_critical': 'sum'
+}).round(2)
+
+regions = ['US-East', 'US-West', 'UK', 'EU']
+region_names = {
+    'US-East': '🇺🇸 US East',
+    'US-West': '🇺🇸 US West',
+    'UK': '🇬🇧 UK',
+    'EU': '🇪🇺 EU'
+}
+
+for idx, (col, region) in enumerate(zip([region_col1, region_col2, region_col3, region_col4], regions)):
+    with col:
+        if region in region_stats.index:
+            stats = region_stats.loc[region]
+            st.markdown(f"""
+            <div style='background: linear-gradient(135deg, #F7F7F8 0%, #FFFFFF 100%);
+                        padding: 16px;
+                        border-radius: 12px;
+                        border: 2px solid #10A37F;
+                        text-align: center;'>
+                <h4 style='margin: 0 0 12px 0; color: #10A37F;'>{region_names[region]}</h4>
+                <p style='font-size: 1.8em; font-weight: 700; margin: 8px 0; color: #202123;'>{stats['sps_score']:.2f}</p>
+                <p style='font-size: 0.9em; color: #6B7280; margin: 4px 0;'>Avg SPS</p>
+                <hr style='margin: 12px 0; border: none; border-top: 1px solid #E5E7EB;'>
+                <p style='font-size: 1.2em; font-weight: 600; margin: 4px 0; color: #202123;'>{int(stats['daily_orders']):,}</p>
+                <p style='font-size: 0.85em; color: #6B7280; margin: 4px 0;'>Daily Orders</p>
+                <p style='font-size: 1.2em; font-weight: 600; margin: 4px 0; color: {"#EF4444" if int(stats["is_critical"]) > 0 else "#10A37F"};'>{int(stats['is_critical'])}</p>
+                <p style='font-size: 0.85em; color: #6B7280; margin: 4px 0;'>P0 Shops</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 st.markdown("---")
 
